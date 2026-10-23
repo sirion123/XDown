@@ -2,6 +2,7 @@ import { webview } from '@kit.ArkWeb'
 import { CookieService, PlatformId } from '../services/CookieService'
 import { AmbientBackground } from '../components/AmbientBackground'
 import { SettingsRepository } from '../storage/SettingsRepository'
+import { AppTheme } from '../models/AppTheme'
 
 // 移动端 UA：与手机浏览器一致，避免平台把内嵌 WebView 识别成平板/桌面
 const MOBILE_UA: string =
@@ -11,6 +12,7 @@ const MOBILE_UA: string =
 // 只负责打开平台网页；检测到有效会话 Cookie 后自动保存并返回，无需用户手动确认。
 @Component
 export struct LoginPage {
+  @StorageLink('themeColorId') themeColorId: string = 'iris'
   private navPathStack: NavPathStack = AppStorage.get<NavPathStack>('navPathStack') ?? new NavPathStack()
   private cookieService: CookieService = AppStorage.get<CookieService>('cookieService') ?? new CookieService()
   @State platform: string = ''
@@ -107,7 +109,7 @@ export struct LoginPage {
           Circle()
             .width(8)
             .height(8)
-            .fill(this.isLoggedIn ? $r('app.color.status_success') : $r('app.color.brand_primary'))
+            .fill(this.isLoggedIn ? $r('app.color.status_success') : AppTheme.primary(this.themeColorId))
 
           Text(this.loginStatus)
             .fontSize($r('app.float.font_caption'))

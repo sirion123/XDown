@@ -1,10 +1,12 @@
 import { DownloadTask, DownloadStatus } from '../models/DownloadTask'
 import { LinkNormalizer } from '../services/LinkNormalizer'
 import { GlassCard } from './GlassCard'
+import { AppTheme } from '../models/AppTheme'
 
 // TaskCard - 下载任务卡片（玻璃卡片 + 状态胶囊 + 图标操作）
 @Component
 export struct TaskCard {
+  @StorageLink('themeColorId') themeColorId: string = 'iris'
   @ObjectLink task: DownloadTask
   onPauseCallback?: () => void
   onResumeCallback?: () => void
@@ -22,11 +24,11 @@ export struct TaskCard {
             Circle()
               .width(40)
               .height(40)
-              .fill($r('app.color.brand_primary_light'))
+              .fill(AppTheme.light(this.themeColorId))
 
             SymbolGlyph($r('sys.symbol.movie_fill'))
               .fontSize(19)
-              .fontColor([$r('app.color.brand_primary')])
+              .fontColor([AppTheme.primary(this.themeColorId)])
           }
 
           Column() {
@@ -67,14 +69,14 @@ export struct TaskCard {
             Progress({ value: this.task.progress, total: 100, type: ProgressType.Linear })
               .width('100%')
               .height(4)
-              .color($r('app.color.brand_primary'))
+              .color(AppTheme.primary(this.themeColorId))
               .backgroundColor($r('app.color.chip_bg'))
               .borderRadius(2)
 
             Row() {
               Text(`${this.task.progress}%`)
                 .fontSize($r('app.float.font_caption'))
-                .fontColor($r('app.color.brand_primary'))
+                .fontColor(AppTheme.primary(this.themeColorId))
 
               Blank()
 
@@ -208,7 +210,7 @@ export struct TaskCard {
       case DownloadStatus.CANCELLED:
         return $r('app.color.text_tertiary')
       case DownloadStatus.DOWNLOADING:
-        return $r('app.color.brand_primary')
+        return AppTheme.primary(this.themeColorId)
       default:
         return $r('app.color.text_secondary')
     }
@@ -221,7 +223,7 @@ export struct TaskCard {
       case DownloadStatus.FAILED:
         return $r('app.color.status_error_bg')
       case DownloadStatus.DOWNLOADING:
-        return $r('app.color.brand_primary_light')
+        return AppTheme.light(this.themeColorId)
       default:
         return $r('app.color.chip_bg')
     }

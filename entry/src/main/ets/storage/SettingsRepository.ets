@@ -5,10 +5,12 @@ import { hilog } from '@kit.PerformanceAnalysisKit'
 const DOMAIN: number = 0x0003
 const STORE_NAME: string = 'settings_store'
 const KEY_CUSTOM_BACKGROUND: string = 'custom_background_path'
+const KEY_THEME_COLOR: string = 'theme_color'
 
 // SettingsRepository - 设置存储（Preferences 持久化版本）
 export class SettingsRepository {
   private customBackgroundPath: string = ''
+  private themeColor: string = 'iris'
   private prefs: preferences.Preferences | null = null
   private loaded: boolean = false
 
@@ -31,6 +33,7 @@ export class SettingsRepository {
     }
     try {
       this.customBackgroundPath = await this.prefs.get(KEY_CUSTOM_BACKGROUND, '') as string
+      this.themeColor = await this.prefs.get(KEY_THEME_COLOR, 'iris') as string
     } catch (err) {
       hilog.error(DOMAIN, 'SettingsRepository', `Failed to load from Preferences: ${JSON.stringify(err)}`)
     }
@@ -43,6 +46,7 @@ export class SettingsRepository {
     }
     try {
       await this.prefs.put(KEY_CUSTOM_BACKGROUND, this.customBackgroundPath)
+      await this.prefs.put(KEY_THEME_COLOR, this.themeColor)
       await this.prefs.flush()
     } catch (err) {
       hilog.error(DOMAIN, 'SettingsRepository', `Failed to save to Preferences: ${JSON.stringify(err)}`)
@@ -56,6 +60,16 @@ export class SettingsRepository {
 
   setCustomBackgroundPath(path: string): void {
     this.customBackgroundPath = path
+    this.saveToStorage()
+  }
+
+  // 主题色
+  getThemeColor(): string {
+    return this.themeColor
+  }
+
+  setThemeColor(id: string): void {
+    this.themeColor = id
     this.saveToStorage()
   }
 }

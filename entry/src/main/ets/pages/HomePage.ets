@@ -14,10 +14,11 @@ import { MediaSaveService } from '../services/MediaSaveService'
 import { CookieService, PlatformId } from '../services/CookieService'
 import { HistoryRepository } from '../storage/HistoryRepository'
 import { SettingsRepository } from '../storage/SettingsRepository'
+import { AppTheme, ThemePreset } from '../models/AppTheme'
 
 import { ResolveDetailPage } from './ResolveDetailPage'
 import { LoginPage } from './LoginPage'
-import { uiMaterial } from '@kit.ArkUI'
+import { ThemeControl, uiMaterial } from '@kit.ArkUI'
 import { hilog } from '@kit.PerformanceAnalysisKit'
 import { webview } from '@kit.ArkWeb'
 import { common } from '@kit.AbilityKit'
@@ -159,6 +160,7 @@ struct HomePage {
   @State searchKeyword: string = ''
   @State downloadFilter: number = 0
   @State xLoggedIn: boolean = false
+  @StorageLink('themeColorId') themeColorId: string = 'iris'
   @StorageLink('switchToTab') @Watch('onSwitchToTab') switchToTab: number = -1
   // 登录页写入 Cookie 后自增此值，触发主页刷新登录状态
   @StorageLink('loginChanged') @Watch('onLoginChanged') loginChanged: number = 0
@@ -175,27 +177,7 @@ struct HomePage {
   private settingsRepository: SettingsRepository = AppStorage.get<SettingsRepository>('settingsRepository') ?? new SettingsRepository()
   private cookieService: CookieService = AppStorage.get<CookieService>('cookieService') ?? new CookieService()
 
-  // HarmonyOS 7 沉浸光感：底部悬浮页签的材质（仅在 Tabs 底部 TabBar 作用域内生效）
-  // THIN 的模糊更强，背景内容会变成柔和的色块而不是可读文字。
-  private tabMaterial: uiMaterial.ImmersiveMaterial = new uiMaterial.ImmersiveMaterial({
-    style: uiMaterial.ImmersiveStyle.THIN,
-    materialColor: $r('app.color.glass_material_tint'),
-    colorInvert: false,
-    applyShadow: true,
-    interactive: true,
-    lightEffect: { color: $r('app.color.brand_primary') }
-  })
-
-  private licenseDialogController: CustomDialogController = new CustomDialogController({
-    builder: LicenseDialog(),
-    alignment: DialogAlignment.Center,
-    autoCancel: true,
-    cornerRadius: 28,
-    systemMaterial: new uiMaterial.ImmersiveMaterial({
-      style: uiMaterial.ImmersiveStyle.THICK,
-      applyShadow: true
-    })
-  })
+  private tabsController: TabsController = new TabsController()
 
   private tabNames: string[] = ['首页', '下载', '历史', '设置']
   private tabIcons: Resource[] = [
@@ -211,8 +193,22 @@ struct HomePage {
     $r('sys.symbol.gearshape_fill')
   ]
 
+  private licenseDialogController: CustomDialogController = new CustomDialogController({
+    builder: LicenseDialog(),
+    alignment: DialogAlignment.Center,
+    autoCancel: true,
+    cornerRadius: 28,
+    systemMaterial: new uiMaterial.ImmersiveMaterial({
+      style: uiMaterial.ImmersiveStyle.THICK,
+      applyShadow: true
+    })
+  })
+
   aboutToAppear(): void {
     AppStorage.setOrCreate<NavPathStack>('navPathStack', this.navPathStack)
+    this.themeColorId = this.settingsRepository.getThemeColor()
+    AppStorage.setOrCreate<string>('themeColorId', this.themeColorId)
+    this.applyTheme(this.themeColorId)
 
     try {
       const supported: boolean = uiMaterial.isImmersiveMaterialSupported()
@@ -285,16 +281,7 @@ struct HomePage {
       return
     }
     AppStorage.setOrCreate<number>('switchToTab', -1)
-    setTimeout(() => {
-      this.getUIContext().animateTo({ duration: 300, curve: Curve.EaseInOut }, () => {
-        this.currentTabIndex = target
-      })
-      if (target === 1) {
-        this.refreshTasks()
-      } else if (target === 2) {
-        this.refreshHistory()
-      }
-    }, 0)
+    this.selectTab(target)
   }
 
   build() {
@@ -302,49 +289,76 @@ struct HomePage {
       Stack({ alignContent: Alignment.TopStart }) {
         AmbientBackground({ customImagePath: this.customBackgroundPath })
 
-        Tabs({ barPosition: BarPosition.End, index: this.currentTabIndex }) {
+        Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
           TabContent() {
             this.HomeTabContent()
           }
-          .tabBar(this.TabBarItem(0))
 
           TabContent() {
             this.DownloadsTabContent()
           }
-          .tabBar(this.TabBarItem(1))
 
           TabContent() {
             this.HistoryTabContent()
           }
-          .tabBar(this.TabBarItem(2))
 
           TabContent() {
             this.SettingsTabContent()
           }
-          .tabBar(this.TabBarItem(3))
         }
         .width('100%')
         .height('100%')
-        .barMode(BarMode.Fixed)
-        .barHeight($r('app.float.tab_bar_height'))
-        .barOverlap(true)
-        .barPosition(BarPosition.End)
-        .vertical(false)
-        .barFloatingStyle({
-          barWidth: { smallBarWidth: 340, mediumBarWidth: 340, largeBarWidth: 340 },
-          barSideMargin: 16,
-          barBottomMargin: -28,
-          maskHeight: 0,
-          adaptToHandedness: true,
-          systemMaterial: this.tabMaterial
-        })
+        .barHeight(0)
         .animationDuration(240)
         .onChange((index: number) => {
-          this.getUIContext().animateTo({ duration: 240, curve: Curve.EaseInOut }, () => {
-            this.currentTabIndex = index
-          })
+          // 左右滑动切换时同步选中态。
+          this.currentTabIndex = index
           this.refreshTabData(index)
         })
+
+        // 自绘底部导航：选中态直接跟随点击，不依赖 Tabs 的页签动画。
+        Column() {
+          Row() {
+            ForEach([0, 1, 2, 3], (index: number) => {
+              Column() {
+                SymbolGlyph(index === this.currentTabIndex ? this.tabIconsSelected[index] : this.tabIcons[index])
+                  .fontSize(21)
+                  .fontColor([index === this.currentTabIndex ? AppTheme.primary(this.themeColorId) :
+                    $r('app.color.tab_inactive')])
+
+                Text(this.tabNames[index])
+                  .fontSize($r('app.float.font_micro'))
+                  .fontColor(index === this.currentTabIndex ? AppTheme.primary(this.themeColorId) :
+                    $r('app.color.tab_inactive'))
+                  .fontWeight(index === this.currentTabIndex ? FontWeight.Medium : FontWeight.Normal)
+                  .margin({ top: 3 })
+              }
+              .layoutWeight(1)
+              .height('100%')
+              .justifyContent(FlexAlign.Center)
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.selectTab(index)
+              })
+            }, (index: number) => `${index}`)
+          }
+          .width('100%')
+          .height(64)
+          .padding({ left: 8, right: 8 })
+          .backgroundColor($r('app.color.glass_fill'))
+          .backgroundEffect({
+            radius: 32,
+            saturation: 1.3,
+            color: $r('app.color.glass_fill')
+          })
+          .border({ width: 1, color: $r('app.color.glass_border') })
+          .borderRadius(32)
+          .margin({ left: 20, right: 20, bottom: 12 })
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.End)
+        .hitTestBehavior(HitTestMode.Transparent)
       }
       .width('100%')
       .height('100%')
@@ -396,29 +410,6 @@ struct HomePage {
     .backgroundColor(Color.Black)
   }
 
-  // ========== 底部悬浮玻璃页签 ==========
-
-  @Builder
-  TabBarItem(index: number) {
-    Column() {
-      Column() {
-        SymbolGlyph(index === this.currentTabIndex ? this.tabIconsSelected[index] : this.tabIcons[index])
-          .fontSize(21)
-          .fontColor([index === this.currentTabIndex ? $r('app.color.brand_primary') : $r('app.color.tab_inactive')])
-
-        Text(this.tabNames[index])
-          .fontSize($r('app.float.font_micro'))
-          .fontColor(index === this.currentTabIndex ? $r('app.color.brand_primary') : $r('app.color.tab_inactive'))
-          .fontWeight(index === this.currentTabIndex ? FontWeight.Medium : FontWeight.Normal)
-          .margin({ top: 3 })
-      }
-      .padding({ left: 14, right: 14, top: 5, bottom: 5 })
-    }
-    .width('100%')
-    .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
-  }
 
   // ========== NavDestination 路由映射 ==========
 
@@ -471,7 +462,7 @@ struct HomePage {
           Text('XDOWN')
             .fontSize(11)
             .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.brand_primary'))
+            .fontColor(AppTheme.primary(this.themeColorId))
             .letterSpacing(2)
 
           Text('把 X 视频\n留在手机里')
@@ -496,7 +487,7 @@ struct HomePage {
             Row() {
               SymbolGlyph($r('sys.symbol.link'))
                 .fontSize(18)
-                .fontColor([$r('app.color.brand_primary')])
+                .fontColor([AppTheme.primary(this.themeColorId)])
 
               TextInput({ placeholder: '粘贴 X 视频链接', text: this.inputText })
                 .layoutWeight(1)
@@ -506,7 +497,7 @@ struct HomePage {
                 .placeholderColor($r('app.color.text_placeholder'))
                 .backgroundColor(Color.Transparent)
                 .padding({ left: 8, right: 4 })
-                .caretColor($r('app.color.brand_primary'))
+                .caretColor(AppTheme.primary(this.themeColorId))
                 .enterKeyType(EnterKeyType.Search)
                 .onChange((value: string) => {
                   this.inputText = value
@@ -641,7 +632,7 @@ struct HomePage {
 
               Text('查看历史')
                 .fontSize($r('app.float.font_caption'))
-                .fontColor($r('app.color.brand_primary'))
+                .fontColor(AppTheme.primary(this.themeColorId))
                 .onClick(() => {
                   this.switchTab(2)
                 })
@@ -710,7 +701,7 @@ struct HomePage {
               .linearGradient({
                 angle: 135,
                 colors: [
-                  [$r('app.color.brand_primary_light'), 0],
+                  [AppTheme.light(this.themeColorId), 0],
                   [$r('app.color.chip_bg'), 1]
                 ]
               })
@@ -719,7 +710,7 @@ struct HomePage {
           if (item.thumbnailUrl.length === 0) {
             SymbolGlyph($r('sys.symbol.movie_fill'))
               .fontSize(18)
-              .fontColor([$r('app.color.brand_primary')])
+              .fontColor([AppTheme.primary(this.themeColorId)])
           }
         }
         .width(48)
@@ -857,7 +848,7 @@ struct HomePage {
             .fontColor($r('app.color.text_primary'))
             .placeholderColor($r('app.color.text_placeholder'))
             .backgroundColor(Color.Transparent)
-            .caretColor($r('app.color.brand_primary'))
+            .caretColor(AppTheme.primary(this.themeColorId))
             .padding({ left: 8 })
             .onChange((value: string) => {
               this.searchKeyword = value
@@ -927,7 +918,7 @@ struct HomePage {
               .linearGradient({
                 angle: 135,
                 colors: [
-                  [$r('app.color.brand_primary_light'), 0],
+                  [AppTheme.light(this.themeColorId), 0],
                   [$r('app.color.chip_bg'), 1]
                 ]
               })
@@ -936,7 +927,7 @@ struct HomePage {
           if (item.thumbnailUrl.length === 0) {
             SymbolGlyph($r('sys.symbol.movie_fill'))
               .fontSize(24)
-              .fontColor([$r('app.color.brand_primary')])
+              .fontColor([AppTheme.primary(this.themeColorId)])
           }
         }
         .width(76)
@@ -1059,6 +1050,32 @@ struct HomePage {
             }
             .width('100%')
             .margin({ top: 12 })
+
+            Divider()
+              .color($r('app.color.divider'))
+              .margin({ top: 16, bottom: 14 })
+
+            Row() {
+              Text('主题色')
+                .fontSize($r('app.float.font_body'))
+                .fontColor($r('app.color.text_primary'))
+                .fontWeight(FontWeight.Medium)
+
+              Blank()
+
+              Text(AppTheme.get(this.themeColorId).name)
+                .fontSize($r('app.float.font_caption'))
+                .fontColor($r('app.color.text_tertiary'))
+            }
+            .width('100%')
+
+            Row() {
+              ForEach(AppTheme.PRESETS, (preset: ThemePreset) => {
+                this.ThemeSwatch(preset)
+              }, (preset: ThemePreset) => preset.id)
+            }
+            .width('100%')
+            .margin({ top: 10 })
           }
           .width('100%')
         }
@@ -1111,7 +1128,7 @@ struct HomePage {
                 Circle()
                   .width(52)
                   .height(52)
-                  .fill($r('app.color.brand_primary'))
+                  .fill(AppTheme.primary(this.themeColorId))
 
                 SymbolGlyph($r('sys.symbol.movie_fill'))
                   .fontSize(24)
@@ -1124,7 +1141,7 @@ struct HomePage {
                   .fontWeight(FontWeight.Medium)
                   .fontColor($r('app.color.text_primary'))
 
-                Text('版本 0.1.0')
+                Text('版本 0.2.0')
                   .fontSize($r('app.float.font_caption'))
                   .fontColor($r('app.color.text_tertiary'))
                   .margin({ top: 3 })
@@ -1163,6 +1180,38 @@ struct HomePage {
     .height('100%')
     .scrollBar(BarState.Off)
     .edgeEffect(EdgeEffect.Spring)
+  }
+
+  @Builder
+  ThemeSwatch(preset: ThemePreset) {
+    Column({ space: 6 }) {
+      Stack({ alignContent: Alignment.Center }) {
+        Circle()
+          .width(26)
+          .height(26)
+          .fill(preset.primary)
+
+        if (preset.id === this.themeColorId) {
+          SymbolGlyph($r('sys.symbol.checkmark'))
+            .fontSize(14)
+            .fontColor([Color.White])
+        }
+      }
+      .width(32)
+      .height(32)
+      .borderRadius(16)
+      .border({ width: preset.id === this.themeColorId ? 2 : 1, color: preset.id === this.themeColorId ?
+        preset.primary : $r('app.color.divider') })
+
+      Text(preset.name)
+        .fontSize($r('app.float.font_micro'))
+        .fontColor(preset.id === this.themeColorId ? preset.primary : $r('app.color.text_tertiary'))
+    }
+    .layoutWeight(1)
+    .alignItems(HorizontalAlign.Center)
+    .onClick(() => {
+      this.selectTheme(preset)
+    })
   }
 
   @Builder
@@ -1206,11 +1255,47 @@ struct HomePage {
 
   // ========== 辅助方法 ==========
 
-  private switchTab(index: number): void {
-    this.getUIContext().animateTo({ duration: 240, curve: Curve.EaseInOut }, () => {
-      this.currentTabIndex = index
-    })
+  private applyTheme(id: string): void {
+    const preset: ThemePreset = AppTheme.get(id)
+    try {
+      ThemeControl.setDefaultTheme({
+        colors: {
+          brand: preset.primary,
+          primary: preset.primary,
+          onPrimary: '#FFFFFFFF',
+          confirm: '#FF3F8F6B'
+        },
+        darkColors: {
+          brand: preset.darkPrimary,
+          primary: preset.darkPrimary,
+          onPrimary: '#FF0B0A10',
+          confirm: '#FF5FD0A0'
+        }
+      })
+    } catch (err) {
+      hilog.warn(0x0000, 'XDown', 'applyTheme failed: %{public}s', JSON.stringify(err))
+    }
+  }
+
+  private selectTheme(preset: ThemePreset): void {
+    this.themeColorId = preset.id
+    AppStorage.setOrCreate<string>('themeColorId', preset.id)
+    this.settingsRepository.setThemeColor(preset.id)
+    this.applyTheme(preset.id)
+  }
+
+  private selectTab(index: number): void {
+    if (index === this.currentTabIndex) {
+      return
+    }
+    // 先更新选中态，再切换内容；颜色不参与内容切换动画。
+    this.currentTabIndex = index
+    this.tabsController.changeIndex(index)
     this.refreshTabData(index)
+  }
+
+  private switchTab(index: number): void {
+    this.selectTab(index)
   }
 
   private openLogin(platform: PlatformId, title: string): void {
@@ -1244,7 +1329,7 @@ struct HomePage {
       case DownloadStatus.FAILED:
         return $r('app.color.status_error')
       case DownloadStatus.DOWNLOADING:
-        return $r('app.color.brand_primary')
+        return AppTheme.primary(this.themeColorId)
       default:
         return $r('app.color.text_tertiary')
     }

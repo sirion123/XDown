@@ -1,6 +1,8 @@
+import { AppTheme } from '../models/AppTheme'
 // EmptyState - 空状态：系统符号 + 玻璃底托
 @Component
 export struct EmptyState {
+  @StorageLink('themeColorId') themeColorId: string = 'iris'
   @Prop icon: Resource = $r('sys.symbol.doc_text')
   @Prop title: string = '暂无数据'
   @Prop description: string = ''
@@ -24,7 +26,7 @@ export struct EmptyState {
 
         SymbolGlyph(this.icon)
           .fontSize(38)
-          .fontColor([$r('app.color.brand_primary')])
+          .fontColor([AppTheme.primary(this.themeColorId)])
       }
       .margin({ bottom: $r('app.float.spacing_xl') })
 

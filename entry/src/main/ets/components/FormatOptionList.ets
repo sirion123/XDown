@@ -1,8 +1,10 @@
 import { FormatOption } from '../models/FormatOption'
+import { AppTheme } from '../models/AppTheme'
 
 // FormatOptionList - 下载格式选择：玻璃行 + 轻量单选指示
 @Component
 export struct FormatOptionList {
+  @StorageLink('themeColorId') themeColorId: string = 'iris'
   @Prop formats: FormatOption[] = []
   @State selectedIndex: number = 0
   onSelectCallback?: (format: FormatOption) => void
@@ -21,10 +23,10 @@ export struct FormatOptionList {
               if (index === 0) {
                 Text('推荐')
                   .fontSize($r('app.float.font_micro'))
-                  .fontColor($r('app.color.brand_primary'))
+                  .fontColor(AppTheme.primary(this.themeColorId))
                   .padding({ left: 6, right: 6, top: 1, bottom: 1 })
                   .borderRadius($r('app.float.radius_pill'))
-                  .backgroundColor($r('app.color.brand_primary_light'))
+                  .backgroundColor(AppTheme.light(this.themeColorId))
                   .margin({ left: 8 })
               }
             }
@@ -53,14 +55,14 @@ export struct FormatOptionList {
               .width(22)
               .height(22)
               .fill(Color.Transparent)
-              .stroke(index === this.selectedIndex ? $r('app.color.brand_primary') : $r('app.color.divider'))
+              .stroke(index === this.selectedIndex ? AppTheme.primary(this.themeColorId) : $r('app.color.divider'))
               .strokeWidth(1.5)
 
             if (index === this.selectedIndex) {
               Circle()
                 .width(12)
                 .height(12)
-                .fill($r('app.color.brand_primary'))
+                .fill(AppTheme.primary(this.themeColorId))
             }
           }
           .margin({ left: 12 })
@@ -72,7 +74,7 @@ export struct FormatOptionList {
         .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
         .border({
           width: index === this.selectedIndex ? 1.5 : 1,
-          color: index === this.selectedIndex ? $r('app.color.brand_primary') : $r('app.color.glass_border')
+          color: index === this.selectedIndex ? AppTheme.primary(this.themeColorId) : $r('app.color.glass_border')
         })
         .onClick(() => {
           this.selectedIndex = index

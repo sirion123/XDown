@@ -10,10 +10,12 @@ import { DownloadService } from '../services/DownloadService'
 import { SettingsRepository } from '../storage/SettingsRepository'
 import { common } from '@kit.AbilityKit'
 import { BusinessError } from '@kit.BasicServicesKit'
+import { AppTheme } from '../models/AppTheme'
 
 // ResolveDetailPage - 解析详情页（NavDestination）：全幅封面 + 玻璃信息面板 + 底部操作条
 @Component
 export struct ResolveDetailPage {
+  @StorageLink('themeColorId') themeColorId: string = 'iris'
   private navPathStack: NavPathStack = AppStorage.get<NavPathStack>('navPathStack') ?? new NavPathStack()
   @State isResolving: boolean = true
   @State resolveResult: ResolveResult | null = null
@@ -101,7 +103,7 @@ export struct ResolveDetailPage {
         LoadingProgress()
           .width(38)
           .height(38)
-          .color($r('app.color.brand_primary'))
+          .color(AppTheme.primary(this.themeColorId))
       }
       .margin({ bottom: 18 })
 
