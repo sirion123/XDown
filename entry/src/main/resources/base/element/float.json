@@ -1,0 +1,45 @@
+{
+  "float": [
+    { "name": "page_text_font_size", "value": "50fp" },
+
+    { "name": "font_display", "value": "30fp" },
+    { "name": "font_title_large", "value": "24fp" },
+    { "name": "font_h1", "value": "24fp" },
+    { "name": "font_title", "value": "20fp" },
+    { "name": "font_section", "value": "17fp" },
+    { "name": "font_body", "value": "15fp" },
+    { "name": "font_body_small", "value": "13fp" },
+    { "name": "font_caption", "value": "11fp" },
+    { "name": "font_micro", "value": "10fp" },
+
+    { "name": "spacing_xs", "value": "4vp" },
+    { "name": "spacing_sm", "value": "8vp" },
+    { "name": "spacing_md", "value": "12vp" },
+    { "name": "spacing_lg", "value": "16vp" },
+    { "name": "spacing_xl", "value": "24vp" },
+    { "name": "spacing_xxl", "value": "32vp" },
+
+    { "name": "radius_sm", "value": "12vp" },
+    { "name": "radius_md", "value": "16vp" },
+    { "name": "radius_lg", "value": "20vp" },
+    { "name": "radius_card", "value": "24vp" },
+    { "name": "radius_panel", "value": "28vp" },
+    { "name": "radius_button", "value": "22vp" },
+    { "name": "radius_input", "value": "18vp" },
+    { "name": "radius_pill", "value": "999vp" },
+
+    { "name": "tab_bar_height", "value": "64vp" },
+    { "name": "tab_bar_bottom_margin", "value": "12vp" },
+    { "name": "content_bottom_padding", "value": "120vp" },
+
+    { "name": "button_height_normal", "value": "44vp" },
+    { "name": "button_height_small", "value": "34vp" },
+    { "name": "input_height", "value": "48vp" },
+    { "name": "card_padding", "value": "18vp" },
+    { "name": "page_padding_horizontal", "value": "20vp" },
+
+    { "name": "ambient_blue_size", "value": "460vp" },
+    { "name": "ambient_cyan_size", "value": "380vp" },
+    { "name": "ambient_violet_size", "value": "420vp" }
+  ]
+}

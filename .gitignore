@@ -1,0 +1,22 @@
+/node_modules
+/oh_modules
+/local.properties
+/.idea
+**/build
+/.hvigor
+.cxx
+/.clangd
+/.clang-format
+/.clang-tidy
+**/.test
+/.appanalyzer
+
+# Signing material and local credentials
+/sign
+*.p12
+*.cer
+*.p7b
+*.key
+*.pem
+.env
+.env.*

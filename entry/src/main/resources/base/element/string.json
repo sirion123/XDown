@@ -1,0 +1,24 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "XDown - X video downloader"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Save X videos to your gallery"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "XDown"
+    },
+    {
+      "name": "permission_internet_reason",
+      "value": "Used to resolve and download videos"
+    },
+    {
+      "name": "permission_write_imagevideo_reason",
+      "value": "Used to save videos to your gallery"
+    }
+  ]
+}

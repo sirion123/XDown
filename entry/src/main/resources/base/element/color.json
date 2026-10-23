@@ -1,0 +1,59 @@
+{
+  "color": [
+    { "name": "start_window_background", "value": "#FFF7F5F1" },
+
+    { "name": "brand_primary", "value": "#FF5B4BE0" },
+    { "name": "brand_primary_pressed", "value": "#FF4A3BC4" },
+    { "name": "brand_primary_light", "value": "#1F5B4BE0" },
+    { "name": "brand_secondary", "value": "#FFC98A5B" },
+
+    { "name": "text_primary", "value": "#E61B1A22" },
+    { "name": "text_secondary", "value": "#991B1A22" },
+    { "name": "text_tertiary", "value": "#661B1A22" },
+    { "name": "text_on_brand", "value": "#FFFFFFFF" },
+    { "name": "text_placeholder", "value": "#801B1A22" },
+
+    { "name": "bg_page", "value": "#FFF7F5F1" },
+    { "name": "bg_gradient_start", "value": "#FFFCFAF6" },
+    { "name": "bg_gradient_end", "value": "#FFEFEDF8" },
+    { "name": "bg_scrim", "value": "#40F7F5F1" },
+    { "name": "bg_card", "value": "#FFFFFFFF" },
+    { "name": "bg_input", "value": "#8CFFFFFF" },
+    { "name": "bg_selected", "value": "#1F5B4BE0" },
+
+    { "name": "ambient_blue", "value": "#C9BFFF" },
+    { "name": "ambient_cyan", "value": "#C7E8DD" },
+    { "name": "ambient_violet", "value": "#F2D3BE" },
+
+    { "name": "glass_fill", "value": "#80FFFFFF" },
+    { "name": "glass_fill_strong", "value": "#CCFFFFFF" },
+    { "name": "glass_border", "value": "#99FFFFFF" },
+    { "name": "toolbar_fill", "value": "#33FFFFFF" },
+    { "name": "toolbar_highlight", "value": "#33FFFFFF" },
+    { "name": "toolbar_shadow", "value": "#33000000" },
+    { "name": "glass_highlight", "value": "#1FFFFFFF" },
+    { "name": "glass_material_tint", "value": "#33FFFFFF" },
+    { "name": "glass_scrim", "value": "#1A1B1A22" },
+    { "name": "chip_bg", "value": "#0F1B1A22" },
+
+    { "name": "status_success", "value": "#FF3F8F6B" },
+    { "name": "status_success_bg", "value": "#1A3F8F6B" },
+    { "name": "status_warning", "value": "#FFC98A2E" },
+    { "name": "status_warning_bg", "value": "#1AC98A2E" },
+    { "name": "status_error", "value": "#FFC4544E" },
+    { "name": "status_error_bg", "value": "#1AC4544E" },
+
+    { "name": "divider", "value": "#141B1A22" },
+    { "name": "shadow_color", "value": "#1A2A2440" },
+
+    { "name": "tab_bar_bg", "value": "#FFFFFFFF" },
+    { "name": "tab_selected_bg", "value": "#335B4BE0" },
+    { "name": "tab_inactive", "value": "#991B1A22" },
+
+    { "name": "platform_x", "value": "#FF000000" },
+    { "name": "platform_x_bg", "value": "#14000000" },
+
+    { "name": "cover_scrim_start", "value": "#00000000" },
+    { "name": "cover_scrim_end", "value": "#B3000000" }
+  ]
+}
