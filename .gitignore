@@ -20,3 +20,5 @@
 *.pem
 .env
 .env.*
+*.hap
+*.zip

@@ -1124,7 +1124,7 @@ struct HomePage {
                   .fontWeight(FontWeight.Medium)
                   .fontColor($r('app.color.text_primary'))
 
-                Text('版本 1.0.0')
+                Text('版本 0.1.0')
                   .fontSize($r('app.float.font_caption'))
                   .fontColor($r('app.color.text_tertiary'))
                   .margin({ top: 3 })

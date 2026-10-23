@@ -4,7 +4,11 @@ XDown 是一个 HarmonyOS NEXT 原生的 X（Twitter）视频保存工具。
 
 粘贴 X 视频链接，在设备本地解析可用清晰度，下载后保存到系统图库。解析、下载和 Cookie 都留在本机，不经过自建服务器。
 
-![XDown 图标](assets/icon.png)
+<img src="assets/icon.png" width="96" alt="XDown 图标" />
+
+## 安装
+
+从 [Releases](https://github.com/sirion123/XDown/releases/latest) 下载未签名 HAP，使用 [auto-installer](https://github.com/likuai2010/auto-installer/) 安装；安装器会用自己的证书完成签名，不使用开发者的个人签名。
 
 ## 功能
 
