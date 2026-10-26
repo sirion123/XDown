@@ -19,6 +19,7 @@ import { AppTheme, ThemePreset } from '../models/AppTheme'
 import { ResolveDetailPage } from './ResolveDetailPage'
 import { LoginPage } from './LoginPage'
 import { ThemeControl, uiMaterial } from '@kit.ArkUI'
+import { HdsTabs, hdsMaterial } from '@kit.UIDesignKit'
 import { hilog } from '@kit.PerformanceAnalysisKit'
 import { webview } from '@kit.ArkWeb'
 import { common } from '@kit.AbilityKit'
@@ -147,6 +148,7 @@ struct LicenseDialog {
 @Component
 struct HomePage {
   @State currentTabIndex: number = 0
+  @State barIndex: number = 0
   @State inputText: string = ''
   @State identifiedPlatform: ProviderType = ProviderType.UNKNOWN
   @State showError: boolean = false
@@ -176,8 +178,6 @@ struct HomePage {
   private historyRepository: HistoryRepository = AppStorage.get<HistoryRepository>('historyRepository') ?? new HistoryRepository()
   private settingsRepository: SettingsRepository = AppStorage.get<SettingsRepository>('settingsRepository') ?? new SettingsRepository()
   private cookieService: CookieService = AppStorage.get<CookieService>('cookieService') ?? new CookieService()
-
-  private tabsController: TabsController = new TabsController()
 
   private tabNames: string[] = ['首页', '下载', '历史', '设置']
   private tabIcons: Resource[] = [
@@ -286,79 +286,88 @@ struct HomePage {
 
   build() {
     Navigation(this.navPathStack) {
-      Stack({ alignContent: Alignment.TopStart }) {
+      Stack({ alignContent: Alignment.Bottom }) {
         AmbientBackground({ customImagePath: this.customBackgroundPath })
 
-        Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
+        HdsTabs({ barPosition: BarPosition.End, index: this.currentTabIndex }) {
           TabContent() {
             this.HomeTabContent()
           }
+          .tabBar(this.EmptyTab())
 
           TabContent() {
             this.DownloadsTabContent()
           }
+          .tabBar(this.EmptyTab())
 
           TabContent() {
             this.HistoryTabContent()
           }
+          .tabBar(this.EmptyTab())
 
           TabContent() {
             this.SettingsTabContent()
           }
+          .tabBar(this.EmptyTab())
         }
         .width('100%')
         .height('100%')
-        .barHeight(0)
-        .animationDuration(240)
-        .onChange((index: number) => {
-          // 左右滑动切换时同步选中态。
+        .barMode(BarMode.Fixed)
+        .barOverlap(true)
+        .barPosition(BarPosition.End)
+        .vertical(false)
+        .barFloatingStyle({
+          barWidth: { smallWidth: 340, mediumWidth: 340, largeWidth: 340 },
+          barSideMargin: 16,
+          barBottomMargin: 28,
+          adaptToHandedness: true,
+          barOpacity: 1,
+          lightColor: '#33FFFFFF',
+          systemMaterialEffect: {
+            materialType: hdsMaterial.MaterialType.IMMERSIVE,
+            materialLevel: hdsMaterial.MaterialLevel.EXQUISITE
+          }
+        })
+        .onSelected((index: number) => {
           this.currentTabIndex = index
+          this.barIndex = index
+          this.refreshTabData(index)
+        })
+        .onChange((index: number) => {
+          this.currentTabIndex = index
+          this.barIndex = index
           this.refreshTabData(index)
         })
 
-        // 自绘底部导航：选中态直接跟随点击，不依赖 Tabs 的页签动画。
-        Column() {
-          Row() {
-            ForEach([0, 1, 2, 3], (index: number) => {
-              Column() {
-                SymbolGlyph(index === this.currentTabIndex ? this.tabIconsSelected[index] : this.tabIcons[index])
-                  .fontSize(21)
-                  .fontColor([index === this.currentTabIndex ? AppTheme.primary(this.themeColorId) :
-                    $r('app.color.tab_inactive')])
+        // HdsTabs 提供官方沉浸光感胶囊；自绘图标叠在上方保证选中色即时更新。
+        Row() {
+          ForEach([0, 1, 2, 3], (index: number) => {
+            Column() {
+              SymbolGlyph(index === this.barIndex ? this.tabIconsSelected[index] : this.tabIcons[index])
+                .fontSize(21)
+                .fontColor([index === this.barIndex ? AppTheme.primary(this.themeColorId) :
+                  $r('app.color.tab_inactive')])
 
-                Text(this.tabNames[index])
-                  .fontSize($r('app.float.font_micro'))
-                  .fontColor(index === this.currentTabIndex ? AppTheme.primary(this.themeColorId) :
-                    $r('app.color.tab_inactive'))
-                  .fontWeight(index === this.currentTabIndex ? FontWeight.Medium : FontWeight.Normal)
-                  .margin({ top: 3 })
-              }
-              .layoutWeight(1)
-              .height('100%')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
-              .onClick(() => {
-                this.selectTab(index)
-              })
-            }, (index: number) => `${index}`)
-          }
-          .width('100%')
-          .height(64)
-          .padding({ left: 8, right: 8 })
-          .backgroundColor($r('app.color.glass_fill'))
-          .backgroundEffect({
-            radius: 32,
-            saturation: 1.3,
-            color: $r('app.color.glass_fill')
-          })
-          .border({ width: 1, color: $r('app.color.glass_border') })
-          .borderRadius(32)
-          .margin({ left: 20, right: 20, bottom: 12 })
+              Text(this.tabNames[index])
+                .fontSize($r('app.float.font_micro'))
+                .fontColor(index === this.barIndex ? AppTheme.primary(this.themeColorId) :
+                  $r('app.color.tab_inactive'))
+                .fontWeight(index === this.barIndex ? FontWeight.Medium : FontWeight.Normal)
+                .margin({ top: 3 })
+            }
+            .layoutWeight(1)
+            .height('100%')
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+            .onClick(() => {
+              this.selectTab(index)
+            })
+          }, (index: number) => `${index}`)
         }
-        .width('100%')
-        .height('100%')
-        .justifyContent(FlexAlign.End)
-        .hitTestBehavior(HitTestMode.Transparent)
+        .width(340)
+        .height(64)
+        .padding({ left: 8, right: 8 })
+        .margin({ bottom: 20 })
       }
       .width('100%')
       .height('100%')
@@ -411,7 +420,18 @@ struct HomePage {
   }
 
 
+  // ========== 底部悬浮玻璃页签 ==========
+
+
   // ========== NavDestination 路由映射 ==========
+
+  @Builder
+  EmptyTab() {
+    Column()
+      .width(1)
+      .height(1)
+      .opacity(0)
+  }
 
   @Builder
   pageMap(name: string) {
@@ -1141,7 +1161,7 @@ struct HomePage {
                   .fontWeight(FontWeight.Medium)
                   .fontColor($r('app.color.text_primary'))
 
-                Text('版本 0.2.0')
+                Text('版本 1.0.0')
                   .fontSize($r('app.float.font_caption'))
                   .fontColor($r('app.color.text_tertiary'))
                   .margin({ top: 3 })
@@ -1285,12 +1305,8 @@ struct HomePage {
   }
 
   private selectTab(index: number): void {
-    if (index === this.currentTabIndex) {
-      return
-    }
-    // 先更新选中态，再切换内容；颜色不参与内容切换动画。
+    this.barIndex = index
     this.currentTabIndex = index
-    this.tabsController.changeIndex(index)
     this.refreshTabData(index)
   }
 
