@@ -148,7 +148,6 @@ struct LicenseDialog {
 @Component
 struct HomePage {
   @State currentTabIndex: number = 0
-  @State barIndex: number = 0
   @State inputText: string = ''
   @State identifiedPlatform: ProviderType = ProviderType.UNKNOWN
   @State showError: boolean = false
@@ -293,22 +292,22 @@ struct HomePage {
           TabContent() {
             this.HomeTabContent()
           }
-          .tabBar(this.EmptyTab())
+          .tabBar(this.tabStyle($r('app.media.ic_tab_home'), '首页'))
 
           TabContent() {
             this.DownloadsTabContent()
           }
-          .tabBar(this.EmptyTab())
+          .tabBar(this.tabStyle($r('app.media.ic_tab_download'), '下载'))
 
           TabContent() {
             this.HistoryTabContent()
           }
-          .tabBar(this.EmptyTab())
+          .tabBar(this.tabStyle($r('app.media.ic_tab_history'), '历史'))
 
           TabContent() {
             this.SettingsTabContent()
           }
-          .tabBar(this.EmptyTab())
+          .tabBar(this.tabStyle($r('app.media.ic_tab_settings'), '设置'))
         }
         .width('100%')
         .height('100%')
@@ -330,44 +329,13 @@ struct HomePage {
         })
         .onSelected((index: number) => {
           this.currentTabIndex = index
-          this.barIndex = index
           this.refreshTabData(index)
         })
         .onChange((index: number) => {
           this.currentTabIndex = index
-          this.barIndex = index
           this.refreshTabData(index)
         })
 
-        // HdsTabs 提供官方沉浸光感胶囊；自绘图标叠在上方保证选中色即时更新。
-        Row() {
-          ForEach([0, 1, 2, 3], (index: number) => {
-            Column() {
-              SymbolGlyph(index === this.barIndex ? this.tabIconsSelected[index] : this.tabIcons[index])
-                .fontSize(21)
-                .fontColor([index === this.barIndex ? AppTheme.primary(this.themeColorId) :
-                  $r('app.color.tab_inactive')])
-
-              Text(this.tabNames[index])
-                .fontSize($r('app.float.font_micro'))
-                .fontColor(index === this.barIndex ? AppTheme.primary(this.themeColorId) :
-                  $r('app.color.tab_inactive'))
-                .fontWeight(index === this.barIndex ? FontWeight.Medium : FontWeight.Normal)
-                .margin({ top: 3 })
-            }
-            .layoutWeight(1)
-            .height('100%')
-            .justifyContent(FlexAlign.Center)
-            .alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              this.selectTab(index)
-            })
-          }, (index: number) => `${index}`)
-        }
-        .width(340)
-        .height(64)
-        .padding({ left: 8, right: 8 })
-        .margin({ bottom: 24 })
       }
       .width('100%')
       .height('100%')
@@ -423,15 +391,20 @@ struct HomePage {
   // ========== 底部悬浮玻璃页签 ==========
 
 
+  private tabStyle(icon: Resource, label: string): BottomTabBarStyle {
+    return new BottomTabBarStyle(icon, label)
+      .labelStyle({
+        selectedColor: AppTheme.primary(this.themeColorId),
+        unselectedColor: '#8A8A9E'
+      })
+      .iconStyle({
+        selectedColor: AppTheme.primary(this.themeColorId),
+        unselectedColor: '#8A8A9E'
+      })
+  }
+
   // ========== NavDestination 路由映射 ==========
 
-  @Builder
-  EmptyTab() {
-    Column()
-      .width(1)
-      .height(1)
-      .opacity(0)
-  }
 
   @Builder
   pageMap(name: string) {
@@ -1305,7 +1278,6 @@ struct HomePage {
   }
 
   private selectTab(index: number): void {
-    this.barIndex = index
     this.currentTabIndex = index
     this.refreshTabData(index)
   }
