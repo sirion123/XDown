@@ -340,33 +340,8 @@ export struct ResolveDetailPage {
       .scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring)
 
-      // 底部内容渐隐，避免操作条与列表文字直接叠在一起
-      Column()
-        .width('100%')
-        .height(110)
-        .linearGradient({
-          angle: 180,
-          colors: [
-            [Color.Transparent, 0],
-            [$r('app.color.bg_gradient_end'), 1]
-          ]
-        })
-        .opacity(0.7)
-
-      // 底部玻璃操作条：悬浮胶囊，宽度与页签栏接近，避免横贯整屏
+      // 底部操作条：只保留内容和按钮，不再铺灰色玻璃背板
       Stack({ alignContent: Alignment.Center }) {
-        Column()
-          .width('100%')
-          .height('100%')
-          .linearGradient({
-            angle: 180,
-            colors: [
-              [$r('app.color.toolbar_highlight'), 0],
-              [Color.Transparent, 0.55]
-            ]
-          })
-          .opacity(0.6)
-
         Row() {
           Column() {
             Text(this.compactFormatLabel())
@@ -403,16 +378,6 @@ export struct ResolveDetailPage {
       .width(270)
       .height(60)
       .margin({ bottom: 36 })
-      .borderRadius(30)
-      .backgroundEffect({
-        radius: 44,
-        saturation: 1.8,
-        brightness: 1.05,
-        color: $r('app.color.toolbar_fill')
-      })
-      .border({ width: 1, color: $r('app.color.glass_border') })
-      .shadow({ radius: 26, color: $r('app.color.toolbar_shadow'), offsetX: 0, offsetY: 8 })
-      .clip(true)
     }
     .width('100%')
     .height('100%')
