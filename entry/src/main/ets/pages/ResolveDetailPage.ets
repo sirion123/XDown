@@ -378,6 +378,15 @@ export struct ResolveDetailPage {
       .width(270)
       .height(60)
       .margin({ bottom: 36 })
+      .borderRadius(30)
+      .backgroundEffect({
+        radius: 44,
+        saturation: 1.8,
+        brightness: 1.05,
+        color: Color.Transparent
+      })
+      .border({ width: 1, color: $r('app.color.glass_border') })
+      .clip(true)
     }
     .width('100%')
     .height('100%')

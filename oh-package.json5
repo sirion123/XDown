@@ -1,6 +1,6 @@
 {
   "modelVersion": "26.0.0",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "XDown - X video downloader for HarmonyOS NEXT",
   "dependencies": {
   },
