@@ -367,7 +367,7 @@ struct HomePage {
         .width(340)
         .height(64)
         .padding({ left: 8, right: 8 })
-        .margin({ bottom: 20 })
+        .margin({ bottom: 24 })
       }
       .width('100%')
       .height('100%')
